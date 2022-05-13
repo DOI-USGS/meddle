@@ -27,7 +27,7 @@ render <- function(data, filename, ...){
 #' @export
 render.character <- function(data, filename, ..., template){
   stopifnot(file.exists(data))
-  config.text <- yaml::yaml.load_file(data)
+  config.text <- yaml::yaml.load_file(data, eval.expr = TRUE)
   current.dir <- getwd()
   # setting working directory to the file that is being used, evaluation will be relative to that directory
   setwd(dirname(data))
