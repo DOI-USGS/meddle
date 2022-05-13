@@ -16,13 +16,13 @@ append_list_replace <- function(list0, ...){
   } else {
     list.out <- list0
     for (i in 1:length(new.lists)){
-      
+
       obj <- new.lists[[i]]
-      
+
       if (inherits(obj, 'character')){
         # assume it is a file path
         stopifnot(file.exists(obj))
-        tmp.list <- yaml.load_file(obj)
+        tmp.list <- yaml.load_file(obj, eval.expr = TRUE)
       } else if (inherits(obj, 'list')){
         tmp.list <- obj
       } else {
@@ -31,7 +31,7 @@ append_list_replace <- function(list0, ...){
       if (is.null(names(tmp.list))){
         stop('currently, unnamed lists are not supported')
       }
-      
+
       list.out[names(list.out) %in% names(tmp.list)] <- NULL
       list.out <- append(list.out, tmp.list)
     }
