@@ -33,7 +33,7 @@ render.character <- function(data, filename, ..., template){
   setwd(dirname(data))
   external.resources <- config.text[['external']]
   config.text[['external']] <- NULL # for the time being
-  undefined_elements = which(unlist(lapply(config.text, is.null)))
+  undefined_elements <-  which(unlist(lapply(config.text, is.null)))
   if (length(undefined_elements) > 0) {
     stop(paste("All elements of the YAML file must be defined. The following",
                "elements are blank:",
