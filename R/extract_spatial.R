@@ -2,7 +2,7 @@
 #'
 #' Calculate the bounding box of the feature(s) in  lat/lon, formatted for metadata field entry
 #'
-#' @param obj a spatial object from the \code{sp} package 
+#' @param obj a spatial object from the \code{sp} package
 #' @return a list with \code{wbbox}, \code{ebbox}, \code{nbbox}, \code{sbbox} fields
 #' @importFrom sp bbox proj4string
 #' @examples
@@ -11,7 +11,7 @@
 #' Srs1 <- Polygons(list(Sr1), "s1")
 #' Sr2 <- Polygon(cbind(c(-105,-105.5,-106,-105.5,-105),c(31.4,32,34,34,32)))
 #' Srs2 <- Polygons(list(Sr2), "s2")
-#' p <- SpatialPolygons(list(Srs1, Srs2), proj4string=CRS("+init=epsg:4326 +proj=longlat 
+#' p <- SpatialPolygons(list(Srs1, Srs2), proj4string=CRS("+init=epsg:4326 +proj=longlat
 #' +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 #' p.df <- SpatialPolygonsDataFrame(Sr = p,
 #'    data = data.frame(x=c(0,40), y=c(30,300), z=c(0,0), row.names=c('s1','s2')))
@@ -62,9 +62,9 @@ feature_type <- function(obj){
 #'
 #' Extract the FGDC feature type from an \code{sp} object
 #'
-#' @param obj a spatial object from the \code{sf} package or \code{sp} package 
+#' @param obj a spatial object from the \code{sf} package or \code{sp} package
 #' @param return a list with \code{feature-ref} and \code{feature-type} fields
-#' @details not all \code{sf} or \code{sp} spatial classes are supported. 
+#' @details not all \code{sf} or \code{sp} spatial classes are supported.
 #' If you run into one that you need, file an issue https://github.com/USGS-R/meddle/issues
 #' @keywords internal
 #' @export
@@ -121,9 +121,9 @@ feature_count <- function(obj){
 #'
 #' Tally the number of features in a spatial object
 #'
-#' @param obj a spatial object from the \code{sf} package or \code{sp} package 
+#' @param obj a spatial object from the \code{sf} package or \code{sp} package
 #' @param return a list with \code{feature-count} field
-#' @details not all \code{sf} or \code{sp} spatial classes are supported. 
+#' @details not all \code{sf} or \code{sp} spatial classes are supported.
 #' If you run into one that you need, file an issue https://github.com/USGS-R/meddle/issues
 #' @keywords internal
 #' @export
@@ -172,9 +172,9 @@ feature_count.sf <- function(obj){
 #'
 #' summarize the spatial extent of data relative to overlap w/ US states
 #'
-#' @param obj a spatial object from the \code{sf} package or \code{sp} package 
+#' @param obj a spatial object from the \code{sf} package or \code{sp} package
 #' @return a list with \code{states} field
-#' @details not all \code{sf} or \code{sp} spatial classes are supported. 
+#' @details not all \code{sf} or \code{sp} spatial classes are supported.
 #' If you run into one that you need, file an issue https://github.com/USGS-R/meddle/issues
 #' @export
 #' @examples
@@ -190,7 +190,7 @@ feature_states <- function(obj){
 #' @importFrom sf st_as_sf
 #' @export
 feature_states.Spatial <- function(obj){
-  
+
   feature_states(sf::st_as_sf(obj))
 }
 
@@ -198,11 +198,11 @@ feature_states.Spatial <- function(obj){
 #' @export
 #' @importFrom dataRetrieval stateCdLookup
 feature_states.sfc <- function(obj){
-  
+
   states <- get_states()
-  
+
   state.overlap <- overlaps(obj, states)
-  
+
   as.state_name <- function(x){
     s <- strsplit(tolower(x), " ")
     s_cap <- lapply(s, function(words) {
@@ -215,7 +215,7 @@ feature_states.sfc <- function(obj){
     sapply(s_cap, paste0, collapse=" ")
   }
   state.names <- unname(sapply(states$ID[state.overlap], as.state_name))
-  
+
   feature.states <- lapply(sort(state.names), function(x){
     list('state-name'=x, 'state-abbr' = dataRetrieval::stateCdLookup(x))
   })
@@ -251,7 +251,9 @@ get_states <- function(){
   us_pr$ID <- rep("Puerto Rico", nrow(us_pr))
   sf::st_geometry(us_pr) <- sf::st_geometry(us_pr) - c(360, 0) # units for PR need a latitude shift
   sf::st_crs(us_pr) <- sf::st_crs(4326)
-  
+  us_ak <- sf::st_transform(us_ak, crs = 4326)
+  us_hi <- sf::st_transform(us_hi, crs = 4326)
+
   usa <- rbind(rbind(rbind(us_48, us_ak), us_hi), us_pr)
   return(usa)
 }
@@ -303,7 +305,7 @@ overlaps.SpatialPolygonsDataFrame <- function(x, y){
 #' library(sp)
 #' Sr1 = Polygon(cbind(c(-89,-89.5,-89,-88.5,-89),c(42,42,44,44,42)))
 #' Srs1 = Polygons(list(Sr1), "s1")
-#' p = SpatialPolygons(list(Srs1), proj4string=CRS("+init=epsg:4326 +proj=longlat 
+#' p = SpatialPolygons(list(Srs1), proj4string=CRS("+init=epsg:4326 +proj=longlat
 #' +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
 #' extract_feature(p)
 extract_feature <- function(obj, out){
