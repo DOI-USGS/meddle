@@ -213,7 +213,7 @@
         <attrlabl>{{attr-label}}</attrlabl>
         <attrdef>{{attr-def}}</attrdef>
         <attrdefs>{{attr-defs}}</attrdefs>
-{{#rdom}}
+        {{#rdom}}
         <attrdomv>
           <rdom>
             <rdommin>{{data-min}}</rdommin>
@@ -221,9 +221,9 @@
             <attrunit>{{data-units}}</attrunit>
           </rdom>
         </attrdomv>
-{{/rdom}}
-{{^rdom}}
-{{^edom}}
+        {{/rdom}}
+        {{^rdom}}
+        {{^edom}}
         <attrdomv>
           <rdom>
             <rdommin>{{data-min}}</rdommin>
@@ -231,9 +231,9 @@
             <attrunit>{{data-units}}</attrunit>
           </rdom>
         </attrdomv>
-{{/edom}}
-{{/rdom}}
-{{#edom}}
+        {{/edom}}
+        {{/rdom}}
+        {{#edom}}
         <attrdomv>
           <edom>
             <edomv>{{edomv}}</edomv>
@@ -241,7 +241,7 @@
             <edomvds>{{edomvds}}</edomvds>
           </edom>
         </attrdomv>
-{{/edom}}
+        {{/edom}}
       </attr>
 {{/attributes}}
     </detailed>
