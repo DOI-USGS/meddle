@@ -213,6 +213,7 @@
         <attrlabl>{{attr-label}}</attrlabl>
         <attrdef>{{attr-def}}</attrdef>
         <attrdefs>{{attr-defs}}</attrdefs>
+        {{#rdom}}
         <attrdomv>
           <rdom>
             <rdommin>{{data-min}}</rdommin>
@@ -220,6 +221,27 @@
             <attrunit>{{data-units}}</attrunit>
           </rdom>
         </attrdomv>
+        {{/rdom}}
+        {{^rdom}}
+        {{^edom}}
+        <attrdomv>
+          <rdom>
+            <rdommin>{{data-min}}</rdommin>
+            <rdommax>{{data-max}}</rdommax>
+            <attrunit>{{data-units}}</attrunit>
+          </rdom>
+        </attrdomv>
+        {{/edom}}
+        {{/rdom}}
+        {{#edom}}
+        <attrdomv>
+          <edom>
+            <edomv>{{edomv}}</edomv>
+            <edomvd>{{edomvd}}</edomvd>
+            <edomvds>{{edomvds}}</edomvds>
+          </edom>
+        </attrdomv>
+        {{/edom}}
       </attr>
 {{/attributes}}
     </detailed>

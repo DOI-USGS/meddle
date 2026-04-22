@@ -6,6 +6,111 @@ update_attr_table <- function(attrs, attr.file){
   write_attr_file(attr.table, file = attr.file)
 }
 
+#' create attribute table for long/tidy-format data
+#'
+#' builds an attribute table where the key column gets one \code{edom}
+#' (enumerated domain) row per unique value and all other columns get a
+#' single \code{rdom} (range domain) row.
+#'
+#' @param data a data.frame of long/tidy-format data
+#' @param key.col character name of the column that holds measured-quantity names
+#' @return a data.frame with columns \code{attr-label}, \code{attr-def},
+#'   \code{attr-defs}, \code{data-min}, \code{data-max}, \code{data-units},
+#'   \code{domain-type}, \code{edomv}, \code{edomvd}, and \code{edomvds}
+#' @keywords internal
+create_attr_table_long <- function(data, key.col){
+  cols <- names(data)
+  rows <- list()
+  for (col in cols) {
+    if (col == key.col) {
+      vals <- unique(data[[col]])
+      for (v in vals) {
+        rows[[length(rows) + 1]] <- data.frame(
+          'attr-label'  = col,
+          'attr-def'    = ' ',
+          'attr-defs'   = ' ',
+          'data-min'    = ' ',
+          'data-max'    = ' ',
+          'data-units'  = ' ',
+          'domain-type' = 'edom',
+          'edomv'       = as.character(v),
+          'edomvd'      = ' ',
+          'edomvds'     = ' ',
+          stringsAsFactors = FALSE, check.names = FALSE
+        )
+      }
+    } else {
+      rows[[length(rows) + 1]] <- data.frame(
+        'attr-label'  = col,
+        'attr-def'    = ' ',
+        'attr-defs'   = ' ',
+        'data-min'    = ' ',
+        'data-max'    = ' ',
+        'data-units'  = ' ',
+        'domain-type' = 'rdom',
+        'edomv'       = ' ',
+        'edomvd'      = ' ',
+        'edomvds'     = ' ',
+        stringsAsFactors = FALSE, check.names = FALSE
+      )
+    }
+  }
+  do.call(rbind, rows)
+}
+
+#' merge long-format attribute tables
+#'
+#' merge two long-format attribute tables, preserving user-filled values
+#' from the older table. Matching is done on \code{(attr-label, edomv)} for
+#' \code{edom} rows and on \code{attr-label} for \code{rdom} rows.
+#'
+#' @param new.attrs a new attribute table (data.frame) produced by
+#'   \code{\link{create_attr_table_long}}
+#' @param old.attrs an existing attribute table (data.frame), or \code{NULL}
+#' @return a merged attribute table
+#' @keywords internal
+merge_attr_table_long <- function(new.attrs, old.attrs){
+  if (!is.null(old.attrs) && 'domain-type' %in% names(old.attrs)){
+    for (j in 1:nrow(new.attrs)){
+      label <- new.attrs$`attr-label`[j]
+      dtype <- new.attrs$`domain-type`[j]
+      if (dtype == 'edom'){
+        edomv <- new.attrs$`edomv`[j]
+        match.i <- which(old.attrs$`attr-label` == label &
+                           old.attrs$`domain-type` == 'edom' &
+                           old.attrs$`edomv` == edomv)
+        if (length(match.i) > 0) {
+          new.attrs[j, ] <- old.attrs[match.i[1], ]
+        }
+      } else {
+        match.i <- which(old.attrs$`attr-label` == label &
+                           old.attrs$`domain-type` == 'rdom')
+        if (length(match.i) > 0) {
+          new.attrs[j, ] <- old.attrs[match.i[1], ]
+        }
+      }
+    }
+  }
+  return(new.attrs)
+}
+
+#' update a long-format attribute file
+#'
+#' reads an existing attribute file (if present), creates a fresh attribute
+#' table from the data, merges user-filled values back in, and writes the
+#' result. This is the long-format counterpart to \code{\link{update_attr_table}}.
+#'
+#' @param data a data.frame of long/tidy-format data
+#' @param key.col character name of the column that holds measured-quantity names
+#' @param attr.file file path for the attribute CSV to read/write
+#' @keywords internal
+update_attr_table_long <- function(data, key.col, attr.file){
+  new.attrs <- create_attr_table_long(data, key.col)
+  old.attrs <- read_attr_file(attr.file)
+  attr.table <- merge_attr_table_long(new.attrs, old.attrs)
+  write_attr_file(attr.table, file = attr.file)
+}
+
 create_attr_table <- function(attrs){
   empty.ar <- rep(' ', length(attrs))
   data.frame('attr-label'=attrs, 'attr-def' = empty.ar,
@@ -217,9 +322,47 @@ as.attr_list.character <- function(x){
 #' @export
 #' @keywords internal
 as.attr_list.data.frame <- function(x){
+  if (!'domain-type' %in% names(x)){
+    out <- list()
+    for (i in 1:nrow(x)){
+      out[[i]] <- as.list(x[i,])
+    }
+    return(list('attributes'=out))
+  }
+
   out <- list()
+  seen <- character(0)
   for (i in 1:nrow(x)){
-    out[[i]] <- as.list(x[i,])
+    label <- x$`attr-label`[i]
+    if (label %in% seen) next
+    seen <- c(seen, label)
+    dtype <- x$`domain-type`[i]
+    if (dtype == 'rdom'){
+      entry <- list(
+        'attr-label' = x$`attr-label`[i],
+        'attr-def'   = x$`attr-def`[i],
+        'attr-defs'  = x$`attr-defs`[i],
+        'rdom' = list(
+          'data-min'   = x$`data-min`[i],
+          'data-max'   = x$`data-max`[i],
+          'data-units' = x$`data-units`[i]
+        )
+      )
+    } else {
+      edom.rows <- x[x$`attr-label` == label & x$`domain-type` == 'edom', ]
+      edom.list <- lapply(1:nrow(edom.rows), function(k){
+        list('edomv'  = edom.rows$`edomv`[k],
+             'edomvd' = edom.rows$`edomvd`[k],
+             'edomvds'= edom.rows$`edomvds`[k])
+      })
+      entry <- list(
+        'attr-label' = edom.rows$`attr-label`[1],
+        'attr-def'   = edom.rows$`attr-def`[1],
+        'attr-defs'  = edom.rows$`attr-defs`[1],
+        'edom' = edom.list
+      )
+    }
+    out[[length(out) + 1]] <- entry
   }
   return(list('attributes'=out))
 }

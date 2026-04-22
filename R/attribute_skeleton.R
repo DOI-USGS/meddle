@@ -17,15 +17,18 @@
 #' read_attr_file(attr.file)
 #' }
 #' @export
-attribute_skeleton <- function(object, attr.file, ...){
+attribute_skeleton <- function(object, attr.file, key.col = NULL, ...){
   UseMethod("attribute_skeleton")
 }
 
 #' @keywords internal
 #' @export
-attribute_skeleton.data.frame <- function(object, attr.file, ...){
-  attrs <- attr_names(object)
-  update_attr_table(attrs, attr.file)
+attribute_skeleton.data.frame <- function(object, attr.file, key.col = NULL, ...){
+  if (!is.null(key.col)){
+    update_attr_table_long(object, key.col, attr.file)
+  } else {
+    update_attr_table(attr_names(object), attr.file)
+  }
 }
 
 #' attribute skeleton for an assumed file or files
@@ -35,13 +38,17 @@ attribute_skeleton.data.frame <- function(object, attr.file, ...){
 #'
 #' @keywords internal
 #' @export
-attribute_skeleton.character <- function(object, attr.file = as.attr_file(object), ...){
+attribute_skeleton.character <- function(object, attr.file = as.attr_file(object), key.col = NULL, ...){
 
   # attempt to read in the file based on extension
   class(object) <- get_filetype(object)
 
-  attrs <- attr_names(object)
-  update_attr_table(attrs, attr.file)
+  if (!is.null(key.col)){
+    data <- read_data(object)
+    update_attr_table_long(data, key.col, attr.file)
+  } else {
+    update_attr_table(attr_names(object), attr.file)
+  }
 }
 
 #' @keywords internal

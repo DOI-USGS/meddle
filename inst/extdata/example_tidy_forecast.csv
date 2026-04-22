@@ -1,0 +1,5 @@
+reference_datetime,datetime,site_id,variable,family,parameter,prediction
+2024-01-01,2024-01-02,site_001,channel_water_surface_water__chlorophyll,normal,mu,4.2
+2024-01-01,2024-01-02,site_001,channel_water_surface_water__chlorophyll,normal,sigma,0.5
+2024-01-01,2024-01-02,site_001,channel_water_x-section__volume_flow_rate,normal,mu,12.3
+2024-01-01,2024-01-02,site_001,channel_water_x-section__volume_flow_rate,normal,sigma,1.1
